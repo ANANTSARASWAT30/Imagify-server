@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "main": "server.js",
   "type": "module",
-  "scripts": {
-    "dev": "nodemon server.js",
-    "build": "npm install",
-    "start": "node server.js"
-  },
+    "scripts": {
+        "dev": "nodemon server.js",
+        "build": "npm install",
+        "start": "node server.js",
+        "vercel-build": "echo \"Vercel build started\" && npm install && echo \"Vercel build completed\"",
+        "debug": "node --inspect server.js"
+    },
+    "engines": {
+        "node": ">=18.0.0"
+    },
   "author": "",
   "license": "ISC",
   "description": "",

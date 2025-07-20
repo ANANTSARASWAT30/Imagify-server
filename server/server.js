@@ -21,5 +21,14 @@ if (process.env.NODE_ENV !== 'production') {
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 }
 
+app.use((err, req, res, next) => {
+    console.error('Error:', err.stack);
+    res.status(500).json({
+        error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
+        path: req.path,
+        method: req.method
+    });
+});
+
 // Must export the app as default
 export default app
