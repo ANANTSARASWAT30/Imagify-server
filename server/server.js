@@ -5,7 +5,6 @@ import connectDB from './config/mongodb.js'
 import userRouter from './routes/user.route.js'
 import imageRouter from './routes/image.route.js'
 
-const PORT = process.env.PORT || 4000
 const app = express() 
 
 app.use(express.json())
@@ -16,5 +15,11 @@ app.use('/api/user', userRouter)
 app.use('/api/image', imageRouter)
 app.get('/', (req,res)=> res.send("API Working"))
 
-export default app
+// Add this for Vercel
+if (process.env.NODE_ENV !== 'production') {
+    const PORT = process.env.PORT || 4000
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+}
 
+// Must export the app as default
+export default app
