@@ -7,6 +7,10 @@ import imageRouter from "./routes/image.route.js";
 
 const app = express();
 
+
+app.get('/favicon.ico', (req, res) => {
+    res.status(204).end();
+});
 // Add request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
