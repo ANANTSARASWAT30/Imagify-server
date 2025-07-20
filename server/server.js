@@ -7,10 +7,11 @@ import imageRouter from "./routes/image.route.js";
 
 const app = express();
 
-
+// Handle favicon requests to prevent 404
 app.get('/favicon.ico', (req, res) => {
     res.status(204).end();
 });
+
 // Add request logging
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
@@ -22,32 +23,54 @@ app.use(cors());
 
 const PORT = process.env.PORT || 4000;
 
-// Set up routes immediately for serverless compatibility
+// Root route - add this before other routes
+app.get("/", (req, res) => {
+  res.json({ 
+    message: "Imagify API is running", 
+    status: "active",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Set up routes
 app.use("/api/user", userRouter);
 app.use("/api/image", imageRouter);
-app.get("/", (req, res) => res.send("API Working"));
 
-// Initialize database connection
-const initializeApp = async () => {
-  try {
-    await connectDB();
-    console.log("MongoDB connected successfully");
+// Catch-all route for unhandled requests
+app.use("*", (req, res) => {
+  res.status(404).json({ 
+    error: "Route not found", 
+    path: req.originalUrl,
+    method: req.method 
+  });
+});
 
-    // For local development only
-    if (process.env.NODE_ENV !== "production") {
-      app.listen(PORT, () => {
-        console.log(`Server is running on port ${PORT}`);
-      });
-    }
-  } catch (error) {
-    console.error("MongoDB connection error:", error);
-    if (process.env.NODE_ENV !== "production") {
-      process.exit(1);
+// Database initialization
+let dbInitialized = false;
+
+const initializeDB = async () => {
+  if (!dbInitialized) {
+    try {
+      await connectDB();
+      console.log("MongoDB connected successfully");
+      dbInitialized = true;
+    } catch (error) {
+      console.error("MongoDB connection error:", error);
+      throw error;
     }
   }
 };
 
-// Initialize the app
-initializeApp();
+// For local development
+if (process.env.NODE_ENV !== "production") {
+  initializeDB().then(() => {
+    app.listen(PORT, () => {
+      console.log(`Server is running on port ${PORT}`);
+    });
+  }).catch(console.error);
+} else {
+  // For Vercel, initialize DB on first request
+  initializeDB().catch(console.error);
+}
 
 export default app;
