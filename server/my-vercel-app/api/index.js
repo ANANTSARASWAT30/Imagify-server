@@ -1,11 +1,20 @@
-exports.handler = async (req, res) => {
-    try {
-        // Process the request here
-        const data = { message: "Hello from the serverless function!" };
+import express from 'express'
+import cors from 'cors'
+import 'dotenv/config'
+import connectDB from './config/mongodb.js'
+import userRouter from './routes/user.route.js'
+import imageRouter from './routes/image.route.js'
 
-        // Send the response
-        res.status(200).json(data);
-    } catch (error) {
-        res.status(500).json({ error: "An error occurred" });
-    }
-};
+const PORT = process.env.PORT || 4000
+const app = express() 
+
+app.use(express.json())
+app.use(cors())
+await connectDB()
+
+app.use('/api/user', userRouter)
+app.use('/api/image', imageRouter)
+app.get('/', (req,res)=> res.send("API Working"))
+
+export default app
+
