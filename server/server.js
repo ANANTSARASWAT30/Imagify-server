@@ -16,25 +16,34 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(cors());
 
-// Add error handling for MongoDB connection
-try {
-  await connectDB();
-  console.log("MongoDB connected successfully");
-} catch (error) {
-  console.error("MongoDB connection error:", error);
-}
+const PORT = process.env.PORT || 4000;
 
+// Set up routes immediately for serverless compatibility
 app.use("/api/user", userRouter);
 app.use("/api/image", imageRouter);
 app.get("/", (req, res) => res.send("API Working"));
 
-const PORT = process.env.PORT || 4000;
+// Initialize database connection
+const initializeApp = async () => {
+  try {
+    await connectDB();
+    console.log("MongoDB connected successfully");
 
-// For local development
-if (process.env.NODE_ENV !== "production") {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-}
+    // For local development only
+    if (process.env.NODE_ENV !== "production") {
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    }
+  } catch (error) {
+    console.error("MongoDB connection error:", error);
+    if (process.env.NODE_ENV !== "production") {
+      process.exit(1);
+    }
+  }
+};
+
+// Initialize the app
+initializeApp();
 
 export default app;
