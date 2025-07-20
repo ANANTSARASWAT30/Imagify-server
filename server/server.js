@@ -1,34 +1,40 @@
-import express from 'express'
-import cors from 'cors'
-import 'dotenv/config'
-import connectDB from './config/mongodb.js'
-import userRouter from './routes/user.route.js'
-import imageRouter from './routes/image.route.js'
+import express from "express";
+import cors from "cors";
+import "dotenv/config";
+import connectDB from "./config/mongodb.js";
+import userRouter from "./routes/user.route.js";
+import imageRouter from "./routes/image.route.js";
 
-const app = express() 
+const app = express();
 
-app.use(express.json())
-app.use(cors())
-await connectDB()
-
-app.use('/api/user', userRouter)
-app.use('/api/image', imageRouter)
-app.get('/', (req,res)=> res.send("API Working"))
-
-// Add this for Vercel
-if (process.env.NODE_ENV !== 'production') {
-    const PORT = process.env.PORT || 4000
-    app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
-}
-
-app.use((err, req, res, next) => {
-    console.error('Error:', err.stack);
-    res.status(500).json({
-        error: process.env.NODE_ENV === 'production' ? 'Internal Server Error' : err.message,
-        path: req.path,
-        method: req.method
-    });
+// Add request logging
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+  next();
 });
 
-// Must export the app as default
-export default app
+app.use(express.json());
+app.use(cors());
+
+// Add error handling for MongoDB connection
+try {
+  await connectDB();
+  console.log("MongoDB connected successfully");
+} catch (error) {
+  console.error("MongoDB connection error:", error);
+}
+
+app.use("/api/user", userRouter);
+app.use("/api/image", imageRouter);
+app.get("/", (req, res) => res.send("API Working"));
+
+const PORT = process.env.PORT || 4000;
+
+// For local development
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
+
+export default app;
